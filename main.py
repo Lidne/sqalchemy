@@ -1,8 +1,8 @@
-from flask import Flask, render_template, redirect, request, make_response
+from flask import Flask, render_template, redirect
 from data.users import User
 from data.jobs import Jobs
 from forms.user import RegisterForm
-from flask_login import login_user, LoginManager, logout_user, login_required, current_user
+from flask_login import LoginManager, logout_user, login_required
 from data import db_session
 
 app = Flask(__name__)
