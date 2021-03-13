@@ -1,7 +1,7 @@
 import flask
 import flask_login
 from flask_login import LoginManager
-from data import db_session
+from data import db_session, news_api
 from forms.user import RegisterForm, LoginForm
 from forms.news import NewsForm
 from data.users import User
@@ -15,6 +15,7 @@ login_manager.init_app(app)
 
 def main():
     db_session.global_init("db/blogs.db")
+    app.register_blueprint(news_api.blueprint)
     app.run()
 
 
@@ -147,6 +148,11 @@ def news_delete(id):
     else:
         flask.abort(404)
     return flask.redirect('/')
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return flask.make_response(flask.jsonify({'error': 'Not found'}), 404)
 
 
 if __name__ == '__main__':
