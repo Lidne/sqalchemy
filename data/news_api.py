@@ -1,7 +1,7 @@
 import flask
 
 from . import db_session
-from .news import News
+from .jobs import Jobs
 
 blueprint = flask.Blueprint(
     'news_api',
@@ -13,7 +13,7 @@ blueprint = flask.Blueprint(
 @blueprint.route('/api/news')
 def get_news():
     db_sess = db_session.create_session()
-    news = db_sess.query(News).all()
+    news = db_sess.query(Jobs).all()
     return flask.jsonify(
         {
             'news':
@@ -26,7 +26,7 @@ def get_news():
 @blueprint.route('/api/news/<int:news_id>', methods=['GET'])
 def get_one_news(news_id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).get(news_id)
+    news = db_sess.query(Jobs).get(news_id)
     if not news:
         return flask.jsonify({'error': 'Not found'})
     return flask.jsonify(
@@ -45,10 +45,10 @@ def create_news():
                  ['title', 'content', 'user_id', 'is_private']):
         return flask.jsonify({'error': 'Bad request'})
     db_sess = db_session.create_session()
-    news = News(
-        title=flask.request.json['title'],
-        content=flask.request.json['content'],
-        user_id=flask.request.json['user_id'],
+    news = Jobs(
+        job=flask.request.json['job'],
+        team_leader=flask.request.json['team_leader'],
+        user_id=flask.request.json[''],
         is_private=flask.request.json['is_private']
     )
     db_sess.add(news)
@@ -59,7 +59,7 @@ def create_news():
 @blueprint.route('/api/news_del/<int:news_id>', methods=['DELETE'])
 def delete_news(news_id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).get(news_id)
+    news = db_sess.query(Jobs).get(news_id)
     if not news:
         return flask.jsonify({'error': 'Not found'})
     db_sess.delete(news)

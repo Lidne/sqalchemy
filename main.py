@@ -1,11 +1,14 @@
+import datetime
+import random
+
 import flask
 import flask_login
 from flask_login import LoginManager
 from data import db_session, news_api
 from forms.user import RegisterForm, LoginForm
-from forms.news import NewsForm
+from forms.jobs import JobsForm
 from data.users import User
-from data.news import News
+from data.jobs import Jobs
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -14,9 +17,47 @@ login_manager.init_app(app)
 
 
 def main():
-    db_session.global_init("db/blogs.db")
+    db_session.global_init("db/mars_one.db")
     app.register_blueprint(news_api.blueprint)
     app.run()
+
+
+def add():
+    db_session.global_init('db/mars_one.db')
+    db_sess = db_session.create_session()
+    job = Jobs()
+    job.team_leader = 1
+    job.job = 'deployment of residential modules 1 and 2'
+    job.work_size = 15
+    job.collaborators = '2, 3'
+    job.start_date = datetime.datetime.now()
+    job.is_finished = False
+    db_sess.add(job)
+    db_sess.commit()
+
+
+def add1():
+    db_sess = db_session.create_session()
+    cap = User()
+    cap.surname = 'Scott'
+    cap.name = 'Ridley'
+    cap.age = 21
+    cap.position = 'captain'
+    cap.speciality = 'research engineer'
+    cap.address = 'module_1'
+    cap.email = 'scott_chief@mars.org'
+    db_sess.add(cap)
+    for i in range(5):
+        user = User()
+        user.surname = 'H' + 'a' * i + 'll'
+        user.name = 'Joe'
+        user.age = 18 + i * 3
+        user.position = 'recruit'
+        user.speciality = random.choice(['Pilot', 'Biologist', 'Mechanic', 'Astronomer', 'Programmer'])
+        user.address = f'module_{i + 1}'
+        user.email = f'{user.name}.{user.surname}@mars.org'
+        db_sess.add(user)
+    db_sess.commit()
 
 
 @login_manager.user_loader
@@ -50,12 +91,8 @@ def logout():
 @app.route("/")
 def index():
     db_sess = db_session.create_session()
-    if flask_login.current_user.is_authenticated:
-        news = db_sess.query(News).filter(
-            (News.user == flask_login.current_user) | (News.is_private != True))
-    else:
-        news = db_sess.query(News).filter(News.is_private != True)
-    return flask.render_template("index.html", news=news)
+    jobs = db_sess.query(Jobs).all()
+    return flask.render_template("index.html", jobs=jobs)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -83,32 +120,36 @@ def reqister():
     return flask.render_template('register.html', title='Регистрация', form=form)
 
 
-@app.route('/news', methods=['GET', 'POST'])
+@app.route('/jobs', methods=['GET', 'POST'])
 @flask_login.login_required
 def add_news():
-    form = NewsForm()
+    form = JobsForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        news = News()
-        news.title = form.title.data
-        news.content = form.content.data
-        news.is_private = form.is_private.data
-        flask_login.current_user.news.append(news)
+        jobs = Jobs()
+        jobs.job = form.job.data
+        jobs.team_leader = form.team_leader.data
+        jobs.work_size = form.work_size.data
+        jobs.collaborators = form.collaborators.data
+        jobs.start_date = form.start_date.data
+        jobs.end_date = form.end_date.data
+        jobs.is_finished = form.is_finished.data
+        flask_login.current_user.news.append(jobs)
         db_sess.merge(flask_login.current_user)
         db_sess.commit()
         return flask.redirect('/')
-    return flask.render_template('news.html', title='Добавление новости',
+    return flask.render_template('jobs.html', title='Добавление работы',
                                  form=form)
 
 
 @app.route('/news/<int:id>', methods=['GET', 'POST'])
 @flask_login.login_required
 def edit_news(id):
-    form = NewsForm()
+    form = JobsForm()
     if flask.request.method == "GET":
         db_sess = db_session.create_session()
-        news = db_sess.query(News).filter(News.id == id,
-                                          News.user == flask_login.current_user
+        news = db_sess.query(Jobs).filter(Jobs.id == id,
+                                          Jobs.user == flask_login.current_user
                                           ).first()
         if news:
             form.title.data = news.title
@@ -118,8 +159,8 @@ def edit_news(id):
             flask.abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        news = db_sess.query(News).filter(News.id == id,
-                                          News.user == flask_login.current_user
+        news = db_sess.query(Jobs).filter(Jobs.id == id,
+                                          Jobs.user == flask_login.current_user
                                           ).first()
         if news:
             news.title = form.title.data
@@ -129,7 +170,7 @@ def edit_news(id):
             return flask.redirect('/')
         else:
             flask.abort(404)
-    return flask.render_template('news.html',
+    return flask.render_template('jobs.html',
                                  title='Редактирование новости',
                                  form=form
                                  )
@@ -139,8 +180,8 @@ def edit_news(id):
 @flask_login.login_required
 def news_delete(id):
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.id == id,
-                                      News.user == flask_login.current_user
+    news = db_sess.query(Jobs).filter(Jobs.id == id,
+                                      Jobs.user == flask_login.current_user
                                       ).first()
     if news:
         db_sess.delete(news)
