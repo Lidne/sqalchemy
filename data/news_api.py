@@ -37,7 +37,7 @@ def get_one_news(news_id):
     )
 
 
-@blueprint.route('/api/news', methods=['POST'])
+@blueprint.route('/api/news_add', methods=['POST'])
 def create_news():
     if not flask.request.json:
         return flask.jsonify({'error': 'Empty request'})
@@ -56,7 +56,7 @@ def create_news():
     return flask.jsonify({'success': 'OK'})
 
 
-@blueprint.route('/api/news/<int:news_id>', methods=['DELETE'])
+@blueprint.route('/api/news_del/<int:news_id>', methods=['DELETE'])
 def delete_news(news_id):
     db_sess = db_session.create_session()
     news = db_sess.query(News).get(news_id)
