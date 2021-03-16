@@ -4,7 +4,7 @@ import random
 import flask
 import flask_login
 from flask_login import LoginManager
-from data import db_session, news_api
+from data import db_session, jobs_api
 from forms.user import RegisterForm, LoginForm
 from forms.jobs import JobsForm
 from data.users import User
@@ -18,7 +18,7 @@ login_manager.init_app(app)
 
 def main():
     db_session.global_init("db/mars_one.db")
-    app.register_blueprint(news_api.blueprint)
+    app.register_blueprint(jobs_api.blueprint)
     app.run()
 
 
