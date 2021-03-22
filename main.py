@@ -4,13 +4,15 @@ import random
 import flask
 import flask_login
 from flask_login import LoginManager
-from data import db_session, jobs_api
+from flask_restful import reqparse, abort, Api, Resource
+from data import db_session, jobs_api, users_resource
 from forms.user import RegisterForm, LoginForm
 from forms.jobs import JobsForm
 from data.users import User
 from data.jobs import Jobs
 
 app = flask.Flask(__name__)
+api = Api(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -19,45 +21,12 @@ login_manager.init_app(app)
 def main():
     db_session.global_init("db/mars_one.db")
     app.register_blueprint(jobs_api.blueprint)
+    # для списка объектов
+    api.add_resource(users_resource.UsersListResource, '/api/v2/users')
+
+    # для одного объекта
+    api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
     app.run()
-
-
-def add():
-    db_session.global_init('db/mars_one.db')
-    db_sess = db_session.create_session()
-    job = Jobs()
-    job.team_leader = 1
-    job.job = 'deployment of residential modules 1 and 2'
-    job.work_size = 15
-    job.collaborators = '2, 3'
-    job.start_date = datetime.datetime.now()
-    job.is_finished = False
-    db_sess.add(job)
-    db_sess.commit()
-
-
-def add1():
-    db_sess = db_session.create_session()
-    cap = User()
-    cap.surname = 'Scott'
-    cap.name = 'Ridley'
-    cap.age = 21
-    cap.position = 'captain'
-    cap.speciality = 'research engineer'
-    cap.address = 'module_1'
-    cap.email = 'scott_chief@mars.org'
-    db_sess.add(cap)
-    for i in range(5):
-        user = User()
-        user.surname = 'H' + 'a' * i + 'll'
-        user.name = 'Joe'
-        user.age = 18 + i * 3
-        user.position = 'recruit'
-        user.speciality = random.choice(['Pilot', 'Biologist', 'Mechanic', 'Astronomer', 'Programmer'])
-        user.address = f'module_{i + 1}'
-        user.email = f'{user.name}.{user.surname}@mars.org'
-        db_sess.add(user)
-    db_sess.commit()
 
 
 @login_manager.user_loader
@@ -189,11 +158,6 @@ def news_delete(id):
     else:
         flask.abort(404)
     return flask.redirect('/')
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return flask.make_response(flask.jsonify({'error': 'Not found'}), 404)
 
 
 if __name__ == '__main__':
