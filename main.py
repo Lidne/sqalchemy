@@ -22,10 +22,10 @@ def main():
     db_session.global_init("db/mars_one.db")
     app.register_blueprint(jobs_api.blueprint)
     # для списка объектов
-    api.add_resource(users_resource.UsersListResource, '/api/v2/users')
+    api.add_resource(users_resource.UsersListResource, '/api/users')
 
     # для одного объекта
-    api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
+    api.add_resource(users_resource.UsersResource, '/api/users/<int:user_id>')
     app.run()
 
 
@@ -61,6 +61,8 @@ def logout():
 def index():
     db_sess = db_session.create_session()
     jobs = db_sess.query(Jobs).all()
+    user = db_sess.query(User).first()
+    print(user.to_dict())
     return flask.render_template("index.html", jobs=jobs)
 
 
